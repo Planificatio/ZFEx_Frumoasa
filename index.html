@@ -1,0 +1,2052 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css">
+        <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
+        <link rel="stylesheet" href="css/qgis2web.css">
+        <link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="css/leaflet-control-geocoder.Geocoder.css">
+        <link rel="stylesheet" href="css/leaflet-measure.css">
+		<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+		<link rel="stylesheet" href="css/leaflet-geoman.css">
+		<link rel="stylesheet" href="css/Control.FullScreen.css" />
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
+        <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+		
+		.leaflet-control-zoom a {
+			background-color: white !important;
+			color: #2E2E2E !important;
+			border-radius: 2px !important;
+		}
+		
+		.leaflet-control-zoom a:hover {
+			background-color: #f4f4f4 !important;
+		}
+		
+		.leaflet-control-locate a {
+			background-color: white !important;
+			color: #2E2E2E !important;
+			border-radius: 2px !important;
+		}
+
+		.leaflet-control-locate a:hover {
+			background-color: #f4f4f4 !important;
+		}
+		
+		.language-widget {
+    		position: absolute;
+    		top: 10px;
+    		right: 10px;
+    		background: white;
+    		border-radius: 2px;
+			display: flex;
+			align-items: center;
+    		padding: 5px;
+    		z-index: 1000;
+			box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4);
+		}
+
+		.language-icon {
+    		width: 30px;
+    		height: 20px;
+    		cursor: pointer;
+    		margin: 0 3px;
+            transition: all 0.1s ease;
+		}
+
+		.language-icon.selected {
+    		box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.5);
+            transform: scale(1.1);
+		}
+
+		.language-icon.unselected {
+    		opacity: 0.8;
+			transform: scale(0.9);
+    		filter: brightness(0.9);
+		}
+		
+        .language-icon.unselected:hover {
+            transform: scale(1.0);
+            opacity: 0.9;
+			filter: brightness(1.0);
+		}
+		
+		.leaflet-top.leaflet-right .leaflet-control-layers {
+            margin-top: 50px;
+        }
+		
+		#demo-widget {
+			position: fixed;
+			bottom: 80px;
+			right: 13px;
+			background: white;
+			padding: 5px;
+			border-radius: 2px;
+			z-index: 1000;
+			overflow: hidden;
+			width: 20px;
+			height: 20px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
+			box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4);
+		}
+
+		#demo-widget:hover {
+    		width: 120px;
+    		height: 50px;
+			background-color: rgba(255, 255, 255, 0.95);
+    		border-radius: 4px;
+			padding: 0;
+		}
+		
+		#demo-icon {
+    		width: 24px;
+    		height: 24px;
+		}
+
+		#show-demo-btn {
+            display: none;
+            width: 100%;
+            height: 100%;
+            border: none;
+            font-size: 14px;
+            font-family: 'Arial', sans-serif;
+            background-color: white;
+            color: black;
+            border-radius: 4px;
+            text-align: center;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+		}
+
+		#demo-widget:hover #show-demo-btn {
+    		display: flex;
+		}
+		
+		#demo-widget:hover #demo-icon {
+    		display: none;
+		}
+
+		.demo-textbox {
+    		position: absolute;
+    		padding: 10px;
+    		background: rgba(255, 255, 255, 1);
+    		border: 0px solid #ccc;
+    		border-radius: 2px;
+    		z-index: 1001;
+    		width: 600px;
+			max-height: 70%;
+			left: 50%;
+    		top: 30%;
+    		transform: translate(-50%, -30%);
+			font-size: 15px;
+			box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4);
+		}
+		
+		#map.darkened {
+    		position: relative;
+		}
+
+		#map.darkened::before {
+    		content: '';
+    		position: absolute;
+    		top: 0;
+    		left: 0;
+    		width: 100%;
+    		height: 100%;
+    		background-color: rgba(0, 0, 0, 0.6);
+    		z-index: 999;
+    		pointer-events: none;
+		}
+		
+		.widget {
+    		transition: background-color 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
+		}
+
+		.widget-darkened {
+    		opacity: 0.2;
+		}
+
+		.widget-highlight {
+    		z-index: 1001;
+    		background-color: rgba(255, 255, 255, 1.0);
+    		transition: background-color 0.3s ease, box-shadow 0.3s ease;
+			opacity: 1.0;
+		}
+		
+		#demo-nav {
+    		position: fixed;
+    		bottom: 10%;
+    		left: 50%;
+    		transform: translateX(-50%);
+    		display: flex;
+    		align-items: center;
+    		z-index: 1002;
+		}
+		
+		.nav-btn, .end-btn {
+    		background: rgba(255, 255, 255, 0.8);
+    		border: 1px solid #ccc;
+    		border-radius: 4px;
+    		margin: 0 5px;
+    		padding: 10px 15px;
+    		cursor: pointer;
+    		font-size: 18px;
+			width: 50px;
+    		height: 50px;
+    		display: flex;
+    		align-items: center;
+    		justify-content: center;
+		}
+
+		.nav-btn:hover, .end-btn:hover {
+    		background: rgba(240, 240, 240, 0.9);
+		}
+
+		.nav-btn {
+            margin: 0;
+			background: white;
+        }
+		
+		.nav-btn-disabled {
+    		pointer-events: none; /* Disable interaction */
+    		opacity: 0.5; /* Dim the button to indicate it's disabled */
+    		cursor: default; /* Change cursor to default to indicate it's not clickable */
+		}
+		
+		.end-btn {
+    		margin-left: 20px;
+    		background: rgba(255, 0, 0, 1);
+    		color: white;
+		}
+		
+		.measurement-box {
+    		position: absolute;
+    		top: 155px;
+    		right: 10px;
+    		background-color: rgba(255, 255, 255, 0.9);
+    		border: 1px solid #ccc;
+    		padding: 10px;
+    		border-radius: 5px;
+    		font-size: 15px;
+    		z-index: 1000;
+    		font-family: Arial, sans-serif; 
+    		width: auto;
+    		max-width: 250px; 
+    		height: auto;
+    		max-height: 400px;
+    		overflow-y: auto;
+    		display: none;
+		}
+		
+        </style>
+        <title>RLU - Frumoasa</title>
+    </head>
+    <body>
+        <div id="map" style="z-index:1;">
+			<div class="language-widget widget" id="language-widget">
+            	<img src="images/ro.png" class="language-icon" id="romanian-flag" title="Română" />
+            	<img src="images/hu.png" class="language-icon" id="hungarian-flag" title="Magyar" />
+        	</div>
+			<div id="demo-widget" class="widget">
+    			<img id="demo-icon" src="images/demo/demo-icon.svg" alt="Demo Icon">
+    			<button id="show-demo-btn">Útmutató megtekintése</button>
+			</div>
+			<div id="demo-nav" style="display:none;">
+    			<button id="prev-btn" class="nav-btn">
+        			<span style="font-size: 24px;">&#9664;</span> <!-- Left arrow -->
+    			</button>
+    			<button id="next-btn" class="nav-btn">
+        			<span style="font-size: 24px;">&#9654;</span> <!-- Right arrow -->
+    			</button>
+    			<button id="end-btn" class="end-btn">
+        			<span style="font-size: 24px;">&#10006;</span> <!-- X icon -->
+    			</button>
+			</div>
+			<div id="logo">
+                <a href="https://www.rendezesiterv.eu/" target="_blank">
+		            <img src="images/planificatio.png" alt="some_text" style="position:fixed;bottom:25px;right:10px;z-index:1000;" height="30px" width="34px">
+		        </a>
+            </div>
+		</div>
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/L.Control.Layers.Tree.min.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="js/leaflet-control-geocoder.Geocoder.js"></script>
+        <script src="data/LimitadministrativComunaFrumoasa_0.js"></script>
+        <script src="data/ZFExistenta_1.js"></script>
+		<script src="data/Zone_prot_ex_2.js"></script>
+		<script src="data/UTR_3.js"></script>
+		<script src="data/Intravilan_existent_4.js"></script>
+		<script src="data/parcele_Frumoasa_5.js"></script>
+		<script src="dist/leaflet.browser.print.min.js"></script>
+		<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+		<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+		<script src="js/leaflet-geoman.js"></script>
+		<script src="js/Control.FullScreen.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.js" charset="utf-8"></script>
+		<script src="js/leaflet.geometryutil.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/@turf/turf/turf.min.js"></script>
+		<script>
+        var highlightLayer;
+		var currentOpacity = 1;  // Variable to keep track of the current opacity
+		
+        function highlightFeature(e) {
+            highlightLayer = e.target;
+
+            if (e.target.feature.geometry.type === 'LineString' || e.target.feature.geometry.type === 'MultiLineString') {
+              highlightLayer.setStyle({
+                color: 'rgba(0,255,242,' + currentOpacity + ')',
+              });
+            } else {
+              highlightLayer.setStyle({
+                fillColor: 'rgba(0,255,242,' + currentOpacity + ')',
+                fillOpacity: currentOpacity,  // Use the current opacity for highlighting
+				color: getBorderColorByType(e.target.feature.properties['Tip_SZF']),
+				weight: 1,
+				opacity: currentOpacity
+              });
+            }
+        }
+		function resetHighlight(e) {
+            var layer = e.target;
+            layer.setStyle(style_ZFExistenta_1_0(layer.feature));
+        }
+        var map = L.map('map', {
+            zoomControl:false, 
+			maxZoom:23, 
+			minZoom:13,
+			keyboard: false
+        }).setView([46.4460957,25.9016276], 13);
+		
+		
+		
+		map.on('layeradd', function () {
+			const svg = document.querySelector('svg');
+			if (!svg) return;
+
+			const defs = document.createElementNS("http://www.w3.org/2000/svg", 'defs');
+			let shouldAppend = false;
+
+			// Orange-yellow striped pattern
+			if (!document.getElementById('orangeYellowStripes')) {
+				defs.innerHTML += `
+				<pattern id="orangeYellowStripes" patternUnits="userSpaceOnUse" width="12" height="12">
+					<rect x="0" y="0" width="6" height="12" fill="rgba(243,194,93,1.0)" />
+					<rect x="6" y="0" width="6" height="12" fill="rgba(247,228,102,1.0)" />
+				</pattern>`;
+				shouldAppend = true;
+			}
+
+			// Green-yellow diagonal stripes
+			if (!document.getElementById('greenYellowStripes')) {
+				defs.innerHTML += `
+				<pattern id="greenYellowStripes" patternUnits="userSpaceOnUse" width="12" height="12">
+					<rect x="0" y="0" width="6" height="12" fill="rgba(183,204,119,1.0)" />
+					<rect x="6" y="0" width="6" height="12" fill="rgba(247,228,102,1.0)" />
+				</pattern>`;
+				shouldAppend = true;
+			}
+
+			// Green-red diagonal stripes
+			if (!document.getElementById('greenRedStripes')) {
+				defs.innerHTML += `
+				<pattern id="greenRedStripes" patternUnits="userSpaceOnUse" width="12" height="12">
+					<rect x="0" y="0" width="6" height="12" fill="rgba(183,204,119,1.0)" />
+					<rect x="6" y="0" width="6" height="12" fill="rgba(220,82,90,1.0)" />
+				</pattern>`;
+				shouldAppend = true;
+			}
+			
+			// Orange-green striped pattern
+			if (!document.getElementById('orangeGreenStripes')) {
+				defs.innerHTML += `
+				<pattern id="orangeGreenStripes" patternUnits="userSpaceOnUse" width="12" height="12">
+					<rect x="0" y="0" width="6" height="12" fill="rgba(243,194,93,1.0)" />
+					<rect x="6" y="0" width="6" height="12" fill="rgba(183,204,119,1.0)" />
+				</pattern>`;
+				shouldAppend = true;
+			}
+
+			if (shouldAppend) {
+				svg.insertBefore(defs, svg.firstChild);
+			}
+		});
+		
+		
+		
+
+        var hash = new L.Hash(map);
+        map.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank">Leaflet</a>');
+        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+		
+		setTimeout(function() {
+    		map.invalidateSize(); 
+		}, 500);
+		
+        // remove popup's row if "visible-with-data"
+        function removeEmptyRowsFromPopupContent(content, feature) {
+         var tempDiv = document.createElement('div');
+         tempDiv.innerHTML = content;
+         var rows = tempDiv.querySelectorAll('tr');
+         for (var i = 0; i < rows.length; i++) {
+             var td = rows[i].querySelector('td.visible-with-data');
+             var key = td ? td.id : '';
+             if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
+                 rows[i].parentNode.removeChild(rows[i]);
+             }
+         }
+         return tempDiv.innerHTML;
+        }
+		
+        // add class to format popup if it contains media
+		function addClassToPopupIfMedia(content, popup) {
+			var tempDiv = document.createElement('div');
+			tempDiv.innerHTML = content;
+			if (tempDiv.querySelector('td img')) {
+				popup._contentNode.classList.add('media');
+			} else {
+				popup._contentNode.classList.remove('media');
+			}
+		}
+        var title = new L.Control({'position':'topleft'});
+        title.onAdd = function (map) {
+            this._div = L.DomUtil.create('div', 'info widget');
+            this.update('hu');
+            return this._div;
+        };
+        title.update = function (lang) {
+		    var text = lang === 'hu' ? 'Helyi Építésügyi Szabályzat<br>Szépvíz Község' : 'Regulament Local de Urbanism<br> Comuna Frumoasa';
+            this._div.innerHTML = `
+                <div style="display: flex; align-items: center;">
+                    <a href="https://szepviz.eu/" target="_blank">
+                        <img class="titleimage" src="images/LOGO_frumoasa.PNG" height="62px" width="56px" style="margin-right: 10px;">
+                    </a>
+                    <h2 style="color: black; line-height: 1.3; margin: 0; font-family: Calibri, sans-serif; font-size: 24px;">
+                        ${text}
+                    </h2>
+                </div>`;
+        };
+        title.addTo(map);
+        var zoomControl = L.control.zoom({
+            position: 'topleft',
+        }).addTo(map);
+		
+		zoomControl.getContainer().classList.add('widget');
+		zoomControl.getContainer().id = 'zoom-widget';
+
+        var fullscreenControl = L.control.fullscreen({
+            position: 'topleft',
+            title: 'Teljes képernyő',
+            titleCancel: 'Kilépés teljes képernyőből',
+            forceSeparateButton: false,
+        }).addTo(map);
+		
+		fullscreenControl.getContainer().classList.add('widget');
+		fullscreenControl.getContainer().id = 'fullscreen-widget';
+		
+		map.pm.addControls({
+            position: 'topleft',
+            drawCircleMarker: false,
+			drawRectangle: false,
+			rotateMode: false,
+        });	
+		
+		var drawingToolbar = document.querySelectorAll('.leaflet-pm-toolbar')[0];
+		if (drawingToolbar) {
+			drawingToolbar.id = 'drawing-widget';
+		    drawingToolbar.classList.add('widget');
+		}
+		
+		var firstButton = drawingToolbar.querySelectorAll('.leaflet-pm-btn')[0];
+		
+		if (firstButton) {
+			firstButton.id = 'first-button';
+			firstButton.classList.add('widget');
+		}
+
+		var polylineButton = document.querySelector('.leaflet-pm-icon-polyline');
+		if (polylineButton) {
+			polylineButton.id = 'polyline-button';
+			polylineButton.classList.add('widget');
+		}
+
+		var polygonButton = document.querySelector('.leaflet-pm-icon-polygon');
+		if (polygonButton) {
+			polygonButton.id = 'polygon-button';
+			polygonButton.classList.add('widget');
+		}
+		
+		var circleButton = document.querySelector('.leaflet-pm-icon-circle');
+		if (polylineButton) {
+			circleButton.id = 'circle-button';
+			circleButton.classList.add('widget');
+		}
+
+		var textButton = document.querySelector('.leaflet-pm-icon-text');
+		if (textButton) {
+			textButton.id = 'text-button';
+			textButton.classList.add('widget');
+		}
+
+		var editingToolbar = document.querySelectorAll('.leaflet-pm-toolbar')[1]
+		if (editingToolbar) {
+		    editingToolbar.id = 'editing-widget';
+			editingToolbar.classList.add('widget');
+		}
+		
+		var selectButton = document.querySelector('.leaflet-pm-icon-select');
+		if (selectButton) {
+			selectButton.id = 'select-button';
+			selectButton.classList.add('widget');
+		}
+		
+		var moveButton = document.querySelector('.leaflet-pm-icon-move');
+		if (moveButton) {
+			moveButton.id = 'move-button';
+			moveButton.classList.add('widget');
+		}
+
+		var cutButton = document.querySelector('.leaflet-pm-icon-cut');
+		if (cutButton) {
+			cutButton.id = 'cut-button';
+			cutButton.classList.add('widget');
+		}
+
+		var deleteButton = document.querySelector('.leaflet-pm-icon-delete');
+		if (deleteButton) {
+			deleteButton.id = 'delete-button';
+			deleteButton.classList.add('widget');
+		}
+		
+		// Change leaflet-geoman language
+        function changeLanguage(lang) {
+			console.log('Changing language to:', lang);
+            map.pm.setLang(lang);
+            L.PM.activeLang = lang;
+			updateLegendLanguage(lang);
+			
+			// Refresh the popups to show the content in the selected language
+			map.eachLayer(function(layer) {
+				if (layer.feature && layer.feature.properties && layer.getPopup()) {
+					layer.closePopup();
+
+					if (layer.feature.properties['Tip_SZF'] !== undefined) {
+						// ZFExistenta layer
+						pop_ZFExistenta_1(layer.feature, layer);
+					} else if (layer.feature.properties['Denumire'] !== undefined || layer.feature.properties['Nev'] !== undefined) {
+						// UTR layer
+						pop_UTR_3(layer.feature, layer);
+					}
+				}
+			});
+
+            if (lang === 'ro') {
+                zoomControl._zoomInButton.title = 'Mărire';
+                zoomControl._zoomOutButton.title = 'Micșorare';
+
+                const fullscreenButton = document.querySelector('.leaflet-control-fullscreen-button');
+                if (fullscreenButton) {
+                    fullscreenButton.title = 'Ecran complet';
+                }
+
+                const fullscreenCancelButton = document.querySelector('.leaflet-control-fullscreen-button.leaflet-fullscreen-on');
+                if (fullscreenCancelButton) {
+                    fullscreenCancelButton.title = 'Ieșire din ecran complet';
+                }
+
+                const locateButton = document.querySelector('.leaflet-control-locate a');
+                if (locateButton) {
+                    locateButton.title = 'Locația curentă';
+				}
+				
+				const printButton = document.querySelector('.leaflet-browser-print');
+    			if (printButton) {
+            	    printButton.title = 'Imprimare';
+				}
+            } else {
+				zoomControl._zoomInButton.title = 'Nagyítás';
+                zoomControl._zoomOutButton.title = 'Kicsinyítés';
+
+                const fullscreenButton = document.querySelector('.leaflet-control-fullscreen-button');
+                if (fullscreenButton) {
+                    fullscreenButton.title = 'Teljes képernyő';
+                }
+
+                const fullscreenCancelButton = document.querySelector('.leaflet-control-fullscreen-button.leaflet-fullscreen-on');
+                if (fullscreenCancelButton) {
+                    fullscreenCancelButton.title = 'Kilépés teljes képernyőből';
+                }
+
+                const locateButton = document.querySelector('.leaflet-control-locate a');
+                if (locateButton) {
+                    locateButton.title = 'Élő helyzet';
+				}
+				
+				const printButton = document.querySelector('.leaflet-browser-print');
+    			if (printButton) {
+            	    printButton.title = 'Nyomtatás';
+				}
+			}
+        }
+		
+		var measurementBox = L.DomUtil.create('div', 'measurement-box', document.body);
+		var vertexMarkers = [];
+		var activeLayer = null;
+		document.getElementById('map').appendChild(measurementBox);
+		
+        map.on('click', function(event) {
+            // Check if the click target is not an interactive element (like a marker, polyline, etc.)
+            let isInteractiveLayerClicked = event.originalEvent.target.closest('.leaflet-interactive');
+
+            // If no interactive layer was clicked, hide the measurement box
+            if (!isInteractiveLayerClicked && activeLayer) {
+                hideMeasurements(); // Hide the measurements and reset the active state
+            }
+        });
+
+        function hideMeasurements() {
+            measurementBox.style.display = 'none';
+            vertexMarkers.forEach(marker => map.removeLayer(marker));
+            vertexMarkers = [];
+            activeLayer = null; 
+        }
+
+        function updateMeasurementBox(layer) {
+            let content = '<strong>Méretek:</strong><br>';
+            vertexMarkers.forEach(marker => map.removeLayer(marker)); // Remove previous markers
+            vertexMarkers = [];
+            let totalDistance = 0;
+
+            if (layer instanceof L.Polygon) {
+                let latlngs = layer.getLatLngs()[0]; 
+                
+                // Ensure the polygon is closed
+                let coordinates = latlngs.map(latlng => [latlng.lng, latlng.lat]);
+                if (coordinates[0][0] !== coordinates[coordinates.length - 1][0] || 
+                    coordinates[0][1] !== coordinates[coordinates.length - 1][1]) {
+                    coordinates.push(coordinates[0]); // Close the polygon if not already closed
+                }
+
+                let polygon = turf.polygon([coordinates]);
+
+                // Calculate the area using Turf.js
+                let area = turf.area(polygon); // Area in square meters
+                console.log(`Polygon Area: ${(area).toFixed(2)} m² (${(area / 10000).toFixed(2)} ha)`); // Debugging line
+                
+                for (let i = 0; i < latlngs.length; i++) {
+                    if (i > 0) {
+                        let distance = latlngs[i - 1].distanceTo(latlngs[i]);
+                        content += `${i}. szegmens: ${distance.toFixed(2)} m<br>`;
+                        totalDistance += distance;
+                    }
+                    let marker = L.marker(latlngs[i], {
+                        icon: L.divIcon({
+                            className: 'vertex-label',
+                            html: `<div style="background-color: white; border: 2px solid #3388ff; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">${i + 1}</div>`,
+                            iconSize: [18, 18],
+                            iconAnchor: [9, 9]
+                        }),
+                        interactive: false
+                    }).addTo(map);
+                    vertexMarkers.push(marker);
+                }
+
+                // Calculate the closing distance (last segment back to the start)
+                let closingDistance = latlngs[latlngs.length - 1].distanceTo(latlngs[0]);
+                totalDistance += closingDistance;
+                content += `Utolsó szegmens: ${closingDistance.toFixed(2)} m<br>`;
+
+                // Add the area and perimeter information
+                content += `<strong>Felület:</strong> ${(area).toFixed(2)} m² (${(area / 10000).toFixed(2)} ha)<br>`;
+                content += `<strong>Kerület:</strong> ${totalDistance.toFixed(2)} m<br>`;
+
+            } else if (layer instanceof L.Polyline) {
+                let latlngs = layer.getLatLngs();
+                for (let i = 0; i < latlngs.length; i++) {
+                    if (i > 0) {
+                        let distance = latlngs[i - 1].distanceTo(latlngs[i]);
+                        content += `${i}. szegmens: ${distance.toFixed(2)} m<br>`;
+                        totalDistance += distance;
+                    }
+                    let marker = L.marker(latlngs[i], {
+                        icon: L.divIcon({
+                            className: 'vertex-label',
+                            html: `<div style="background-color: white; border: 2px solid #3388ff; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">${i + 1}</div>`,
+                            iconSize: [18, 18],
+                            iconAnchor: [9, 9]
+                        }),
+                        interactive: false
+                    }).addTo(map);
+                    vertexMarkers.push(marker);
+                }
+                content += `<strong>Teljes hossz:</strong> ${totalDistance.toFixed(2)} m<br>`;
+
+            } else if (layer instanceof L.Circle) {
+                let radius = layer.getRadius();
+                let area = Math.PI * Math.pow(radius, 2);
+                content += `<strong>Sugár:</strong> ${radius.toFixed(2)} m<br>`;
+                content += `<strong>Felület:</strong> ${(area / 1000000).toFixed(2)} km²<br>`;
+            }
+
+            measurementBox.innerHTML = content;
+            measurementBox.style.display = 'block'; // Ensure the box is visible
+            activeLayer = layer;
+        }
+
+		function showMeasurements(layer) {
+    		updateMeasurementBox(layer);
+			activeLayer = layer;
+			measurementBox.style.display = 'block';
+		}
+
+		// Handle drawing start to show vertex numbers immediately
+		map.on('pm:drawstart', function(e) {
+    		let layer = e.workingLayer;
+
+    		layer.on('pm:vertexadded', function() {
+        		updateMeasurementBox(layer);
+    		});
+
+    		layer.on('pm:snapdrag', function() {
+        		updateMeasurementBox(layer);
+    		});
+
+    		layer.on('pm:markerdrag', function() {
+        		updateMeasurementBox(layer);
+    		});
+
+    		layer.on('pm:drawend', function() {
+        		updateMeasurementBox(layer);
+
+        		layer.on('click', function() {
+					showMeasurements(layer);
+				});		
+    		});
+		});
+		
+		function addInvisibleBufferToLine(lineLayer) {
+    		var bufferLayer = L.polyline(lineLayer.getLatLngs(), {
+        		color: 'transparent',
+        		weight: 15,  // Define the buffer width (in pixels)
+        		opacity: 0,  // Keep it invisible
+        		interactive: true,  // Enable interaction
+        		pmIgnore: true  // Ignore this layer in further Geoman operations
+    		});
+
+    		bufferLayer.on('click', function () {
+        		// Trigger the click event on the original line when the buffer is clicked
+        		lineLayer.fire('click');
+    		});
+
+    		bufferLayer.addTo(map);
+		}
+
+		// Re-show measurements if clicking back on a shape after it has been drawn
+		map.on('pm:create', function(e) {
+			let layer = e.layer;
+			
+			if (e.shape === 'Text') {
+				map.pm.disableDraw();
+				return;
+			}
+
+			if (e.shape === 'Marker') {
+				let latlng = layer.getLatLng();
+				let content = `<strong>Koordináták:</strong> ${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}`;
+				measurementBox.innerHTML = content;
+				measurementBox.style.display = 'block';
+
+				layer.on('click', function() {
+					measurementBox.innerHTML = content;
+					measurementBox.style.display = 'block';
+					activeLayer = layer; // Set the marker as the active layer
+				});
+
+				map.pm.disableDraw();
+				activeLayer = layer;
+				return;
+			}
+
+			// Check if the shape is a polygon or polyline using Geoman's native methods
+			if (e.shape === 'Polygon' || layer instanceof L.Polygon) {
+				console.log("Polygon created");
+				layer.feature = {
+					type: "Feature",
+					geometry: {
+						type: "Polygon",
+						coordinates: layer.getLatLngs()
+					}
+				};
+			} else if (e.shape === 'Line' || e.shape === 'Polyline') {
+				var newLine = e.layer;
+
+				// Add the invisible buffer to the newly created line
+				addInvisibleBufferToLine(newLine);
+
+				// Optionally, add click interaction directly to the line
+				newLine.on('click', function () {
+					console.log('Line clicked');
+					showMeasurements(newLine);
+				});
+			}
+
+			// Stop drawing mode explicitly to ensure drawing ends
+			map.pm.disableDraw();
+
+			// Update the measurement box for the newly created shape
+			updateMeasurementBox(layer);
+
+			// Attach click event to show measurements when clicking on the shape
+			layer.on('click', function() {
+				showMeasurements(layer);
+			});
+
+			// Set the newly created shape as the active layer
+			activeLayer = layer;
+		});
+
+        // Event listener to ensure drawing stops correctly
+        map.on('pm:drawend', function() {
+            console.log('Drawing ended');
+            map.pm.disableDraw();  // Disable drawing mode to ensure it stops
+        });
+		
+		changeLanguage('hu');
+
+        // Event listeners for language switching
+        document.getElementById('romanian-flag').addEventListener('click', function () {
+            title.update('ro');
+            changeLanguage('ro');
+			setSelectedFlag('romanian-flag');
+			updateLegendLanguage('ro');
+			updateButtonText('ro');
+        });
+
+        document.getElementById('hungarian-flag').addEventListener('click', function () {
+            title.update('hu');
+            changeLanguage('hu');
+			setSelectedFlag('hungarian-flag');
+			updateLegendLanguage('hu');
+			updateButtonText('hu');
+        });
+		
+        function setSelectedFlag(selectedId) {
+            var romanianFlag = document.getElementById('romanian-flag');
+            var hungarianFlag = document.getElementById('hungarian-flag');
+            if (selectedId === 'romanian-flag') {
+                romanianFlag.classList.add('selected');
+                romanianFlag.classList.remove('unselected');
+                hungarianFlag.classList.remove('selected');
+                hungarianFlag.classList.add('unselected');
+            } else {
+                romanianFlag.classList.remove('selected');
+                romanianFlag.classList.add('unselected');
+                hungarianFlag.classList.add('selected');
+                hungarianFlag.classList.remove('unselected');
+            }
+        }
+		
+		setSelectedFlag('hungarian-flag');
+		
+        var bounds_group = new L.featureGroup([]);
+		
+		var printControl = L.control.browserPrint({
+            title: 'Nyomtatás',
+            documentTitle: 'Regulament Local de Urbanism Frumoasa',
+            printModes: ["Portrait", "Landscape", "Auto", "Custom"],
+            printModesNames: {
+				Portrait: 'Portrait',
+                Landscape: 'Landscape',
+                Auto: 'Auto',
+                Custom: 'Személyre szabott'
+            },
+            closePopupsOnPrint: false,
+        }).addTo(map);
+	   
+	    printControl.getContainer().classList.add('widget');
+		printControl.getContainer().id = 'print-widget';
+		
+		function setBounds() {
+            map.setMaxBounds(map.getBounds());
+        }
+		
+		function leafletPipInside(polygonLayer, latlng) {
+			const point = [latlng.lat, latlng.lng];
+			const latlngs = polygonLayer.getLatLngs();
+
+			function isInsideRing(ring) {
+				let inside = false;
+				for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+					const xi = ring[i].lat, yi = ring[i].lng;
+					const xj = ring[j].lat, yj = ring[j].lng;
+
+					const intersect = ((yi > point[1]) !== (yj > point[1])) &&
+						(point[0] < (xj - xi) * (point[1] - yi) / (yj - yi + 0.0000001) + xi);
+					if (intersect) inside = !inside;
+				}
+				return inside;
+			}
+
+			// Handle MultiPolygon or simple polygon
+			if (Array.isArray(latlngs[0][0])) {
+				// MultiPolygon
+				return latlngs.some(polygon => isInsideRing(polygon[0]));
+			} else {
+				// Polygon
+				return isInsideRing(latlngs[0] || latlngs);
+			}
+		}
+		
+		map.createPane('pane_OpenStreetMap_1');
+        map.getPane('pane_OpenStreetMap_1').style.zIndex = 401;
+        var layer_OpenStreetMap_1 = L.tileLayer('http://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            pane: 'pane_OpenStreetMap_1',
+            opacity: 1.0,
+            attribution: '<a href="https://www.openstreetmap.org/copyright" target="_blank">© OpenStreetMap contributors</a>',
+            minZoom: 11,
+            maxZoom: 23,
+            minNativeZoom: 0,
+            maxNativeZoom: 19
+        });
+        map.addLayer(layer_OpenStreetMap_1);
+        map.createPane('pane_GoogleSatelliteHybrid_0');
+        map.getPane('pane_GoogleSatelliteHybrid_0').style.zIndex = 400;
+        var layer_GoogleSatelliteHybrid_0 = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+            pane: 'pane_GoogleSatelliteHybrid_0',
+            opacity: 1.0,
+            attribution: '<a href="https://www.google.com/maps" target="_blank">© Google Maps </a>',
+            minZoom: 11,
+            maxZoom: 23,
+            minNativeZoom: 0,
+            maxNativeZoom: 18
+        });
+        function pop_LimitadministrativComunaFrumoasa_0(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (var i in e.target._eventParents) {
+                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
+                            e.target._eventParents[i].resetStyle(e.target);
+                        }
+                    }
+                },
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['natcode'] !== null ? autolinker.link(feature.properties['natcode'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['name'] !== null ? autolinker.link(feature.properties['name'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['natLevName'] !== null ? autolinker.link(feature.properties['natLevName'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['countyId'] !== null ? autolinker.link(feature.properties['countyId'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['countyCode'] !== null ? autolinker.link(feature.properties['countyCode'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['county'] !== null ? autolinker.link(feature.properties['county'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['countyMn'] !== null ? autolinker.link(feature.properties['countyMn'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['regionId'] !== null ? autolinker.link(feature.properties['regionId'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['regionCode'] !== null ? autolinker.link(feature.properties['regionCode'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['region'] !== null ? autolinker.link(feature.properties['region'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['pop2011'] !== null ? autolinker.link(feature.properties['pop2011'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['pop2012'] !== null ? autolinker.link(feature.properties['pop2012'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['pop2013'] !== null ? autolinker.link(feature.properties['pop2013'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['pop2014'] !== null ? autolinker.link(feature.properties['pop2014'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['pop2015'] !== null ? autolinker.link(feature.properties['pop2015'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['sortCode'] !== null ? autolinker.link(feature.properties['sortCode'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['version'] !== null ? autolinker.link(feature.properties['version'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_LimitadministrativComunaFrumoasa_0_0() {
+            return {
+                pane: 'pane_LimitadministrativComunaFrumoasa_0',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '15.0,3.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 3.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(125,139,143,0.0)',
+                interactive: false,
+				pmIgnore: false
+            }
+        }
+        map.createPane('pane_LimitadministrativComunaFrumoasa_0');
+        map.getPane('pane_LimitadministrativComunaFrumoasa_0').style.zIndex = 402;
+        map.getPane('pane_LimitadministrativComunaFrumoasa_0').style['mix-blend-mode'] = 'normal';
+        var layer_LimitadministrativComunaFrumoasa_0 = new L.geoJson(json_LimitadministrativComunaFrumoasa_0, {
+            attribution: '',
+            interactive: false,
+			pmIgnore: true,
+            dataVar: 'json_LimitadministrativComunaFrumoasa_0',
+            layerName: 'layer_LimitadministrativComunaFrumoasa_0',
+            pane: 'pane_LimitadministrativComunaFrumoasa_0',
+            onEachFeature: pop_LimitadministrativComunaFrumoasa_0,
+            style: style_LimitadministrativComunaFrumoasa_0_0,
+        });
+        bounds_group.addLayer(layer_LimitadministrativComunaFrumoasa_0);
+        map.addLayer(layer_LimitadministrativComunaFrumoasa_0);
+        	// Function to escape HTML entities to prevent issues
+        function escapeHtml(text) {
+            var map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+		// Process text to ensure paragraphs are preserved
+        function formatText(text) {
+            if (text) {
+				text = escapeHtml(text);
+                text = text.replace(/\r?\n\r?\n/g, '</p><p>').replace(/\r?\n/g, '<br>');
+                return '<p>' + text + '</p>';
+            }
+            return text;
+        }
+        function pop_ZFExistenta_1(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (var i in e.target._eventParents) {
+                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
+                            e.target._eventParents[i].resetStyle(e.target);
+                        }
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+
+            var lang = L.PM.activeLang;
+            console.log('Popup content language:', lang); // Debugging line
+
+            var popupContent = '<table>\
+                <tr>\
+                    <td colspan="2" style="background-color: grey; color: white; font-weight: bold; height: 25px;">' 
+                    + (feature.properties['Tip_SZF'] ? autolinker.link(feature.properties['Tip_SZF'].toLocaleString()) : 'N/A') + '<br></td>\
+                </tr>\
+                <tr>\
+                    <td colspan="2" style="height: 5px;"></td>\
+                </tr>';
+
+            if (lang === 'ro') {
+                console.log('Displaying Romanian content'); // Debugging line
+                popupContent += '<tr>\
+                    <td colspan="2"><strong>Regulament Local de Urbanism</strong><br />' 
+                    + (feature.properties['RLU_existent — SZF_Field3'] ? formatText(feature.properties['RLU_existent — SZF_Field3']) : 'No data available') + '</td>\
+                </tr>';
+            } else if (lang === 'hu') {
+                console.log('Displaying Hungarian content'); // Debugging line
+                popupContent += '<tr>\
+                    <td colspan="2"><strong>Helyi Építésügyi Szabályzat</strong><br />' 
+                    + (feature.properties['RLU_existent — SZF_Field4'] ? formatText(feature.properties['RLU_existent — SZF_Field4']) : 'No data available') + '</td>\
+                </tr>';
+            }
+
+            popupContent += '</table>';
+
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+            layer.on('popupopen', function(e) {
+                addClassToPopupIfMedia(content, e.popup);
+            });
+			return content;
+        }
+        map.createPane('pane_ZFExistenta_1');
+        map.getPane('pane_ZFExistenta_1').style.zIndex = 404;
+        map.getPane('pane_ZFExistenta_1').style['mix-blend-mode'] = 'normal';
+		
+		
+		
+        function pop_Zone_prot_ex_2(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (var i in e.target._eventParents) {
+                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
+                            e.target._eventParents[i].resetStyle(e.target);
+                        }
+                    }
+                },
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['fid'] !== null ? autolinker.link(String(feature.properties['fid']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Tip'] !== null ? autolinker.link(String(feature.properties['Tip']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Zone_prot_ex_2_0(feature) {
+            switch(String(feature.properties['Tip'])) {
+                case 'Zonă centrală':
+                    return {
+                pane: 'pane_Zone_prot_ex_2',
+				opacity: 1,
+                color: 'rgba(255,255,255,1.0)',
+                dashArray: '1, 8',
+                lineCap: 'round',
+                lineJoin: 'miter',
+                weight: 8.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(208,77,131,0.0)',
+                interactive: false,
+            }
+                    break;
+                case 'Zonă de protecție față de obiective cu valoare de patrimoniu':
+                    return {
+                pane: 'pane_Zone_prot_ex_2',
+                opacity: 1,
+                color: 'rgba(191,29,97,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 8.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(208,77,131,0.0)',
+                interactive: false,
+            }
+                    break;
+                case 'Zonă de protecție sanitară':
+                    return {
+                pane: 'pane_Zone_prot_ex_2',
+                opacity: 1,
+                color: 'rgba(79,156,59,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 8.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(198,49,247,0.0)',
+                interactive: false,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_Zone_prot_ex_2');
+        map.getPane('pane_Zone_prot_ex_2').style.zIndex = 405;
+        map.getPane('pane_Zone_prot_ex_2').style['mix-blend-mode'] = 'normal';
+        var layer_Zone_prot_ex_2 = new L.geoJson(json_Zone_prot_ex_2, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_Zone_prot_ex_2',
+            layerName: 'layer_Zone_prot_ex_2',
+            pane: 'pane_Zone_prot_ex_2',
+            onEachFeature: pop_Zone_prot_ex_2,
+            style: style_Zone_prot_ex_2_0,
+        });
+        bounds_group.addLayer(layer_Zone_prot_ex_2);
+        map.addLayer(layer_Zone_prot_ex_2);
+        function pop_UTR_3(feature, layer) {
+			layer.on({
+				mouseout: function (e) {
+					for (var i in e.target._eventParents) {
+						if (typeof e.target._eventParents[i].resetStyle === 'function') {
+							e.target._eventParents[i].resetStyle(e.target);
+						}
+					}
+				},
+				mouseover: highlightFeature,
+			});
+
+			var lang = L.PM.activeLang;
+
+			var popupContent = '<table><tr><td colspan="2" style="height: 5px;"></td></tr>';
+
+			if (lang === 'ro') {
+				const text = feature.properties['RLU_RO'] || 'No data available';
+				const lines = formatText(text).split(/<br\s*\/?>/i);
+				if (lines.length > 0) {
+					popupContent += '<tr><td colspan="2"><strong>' + lines[0] + '</strong></td></tr>';
+					if (lines.length > 1) {
+						popupContent += '<tr><td colspan="2" style="height: 2px;"></td></tr>';
+						popupContent += '<tr><td colspan="2">' + lines.slice(1).join('<br>') + '</td></tr>';
+					}
+				}
+			} else if (lang === 'hu') {
+				const text = feature.properties['RLU_HU'] || 'No data available';
+				const lines = formatText(text).split(/<br\s*\/?>/i);
+				if (lines.length > 0) {
+					popupContent += '<tr><td colspan="2"><strong>' + lines[0] + '</strong></td></tr>';
+					if (lines.length > 1) {
+						popupContent += '<tr><td colspan="2" style="height: 2px;"></td></tr>';
+						popupContent += '<tr><td colspan="2">' + lines.slice(1).join('<br>') + '</td></tr>';
+					}
+				}
+			}
+
+			popupContent += '</table>';
+
+			var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function (e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			return content;
+		}
+
+        function style_UTR_3_0(feature) {
+            switch(String(feature.properties['Denumire'])) {
+                case 'Frumoasa':
+                    return {
+                pane: 'pane_UTR_3',
+                opacity: 1,
+                color: 'rgba(255,65,182,0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 3.0, 
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Nicolești':
+                    return {
+                pane: 'pane_UTR_3',
+                opacity: 1,
+                color: 'rgba(194,239,29,0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 3.0, 
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Bârzava':
+                    return {
+                pane: 'pane_UTR_3',
+                opacity: 1,
+                color: 'rgba(35,211,255,0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 3.0, 
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Făgețel':
+                    return {
+                pane: 'pane_UTR_3',
+                opacity: 1,
+                color: 'rgba(150,75,255,0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 3.0, 
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                default:
+                    return {
+                pane: 'pane_UTR_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 3.0, 
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_UTR_3');
+        map.getPane('pane_UTR_3').style.zIndex = 403;
+        map.getPane('pane_UTR_3').style['mix-blend-mode'] = 'normal';
+        var layer_UTR_3 = new L.geoJson(json_UTR_3, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_UTR_3',
+            layerName: 'layer_UTR_3',
+            pane: 'pane_UTR_3',
+            onEachFeature: pop_UTR_3,
+            style: style_UTR_3_0,
+        });
+        bounds_group.addLayer(layer_UTR_3);
+        map.addLayer(layer_UTR_3);
+		
+		
+		
+		map.on('click', function(e) {
+			let latlng = e.latlng;
+
+			let zfPopup = '';
+			let utrPopup = '';
+			let foundZF = false;
+			let foundUTR = false;
+
+			map.eachLayer(function(layer) {
+				if (!layer.feature || !(layer instanceof L.Polygon)) return;
+
+				if (!leafletPipInside(layer, latlng)) return;
+
+				if (!foundZF && layer.feature.properties['Tip_SZF']) {
+					zfPopup = pop_ZFExistenta_1(layer.feature, layer) || '';
+					foundZF = true;
+				}
+
+				if (!foundUTR && (layer.feature.properties['Denumire'] || layer.feature.properties['Nev'])) {
+					utrPopup = pop_UTR_3(layer.feature, layer) || '';
+					foundUTR = true;
+				}
+			});
+
+			const combinedPopup = zfPopup + utrPopup;
+
+			if (combinedPopup) {
+				L.popup({ maxWidth: 600 })
+					.setLatLng(latlng)
+					.setContent(combinedPopup)
+					.openOn(map);
+			}
+
+			if (combinedPopup) {
+				L.popup({ maxWidth: 600 })
+					.setLatLng(latlng)
+					.setContent(combinedPopup)
+					.openOn(map);
+			}
+		});
+		
+		
+		
+		
+        function pop_Intravilan_existent_4(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (var i in e.target._eventParents) {
+                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
+                            e.target._eventParents[i].resetStyle(e.target);
+                        }
+                    }
+                },
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['fid'] !== null ? autolinker.link(String(feature.properties['fid']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Intravilan_existent_4_0() {
+            return {
+                pane: 'pane_Intravilan_existent_4',
+                opacity: 1,
+                color: 'rgba(255,0,17,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 3.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(232,113,141,0.0)',
+                interactive: false,
+            }
+        }
+        map.createPane('pane_Intravilan_existent_4');
+        map.getPane('pane_Intravilan_existent_4').style.zIndex = 402;
+        map.getPane('pane_Intravilan_existent_4').style['mix-blend-mode'] = 'normal';
+        var layer_Intravilan_existent_4 = new L.geoJson(json_Intravilan_existent_4, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_Intravilan_existent_4',
+            layerName: 'layer_Intravilan_existent_4',
+            pane: 'pane_Intravilan_existent_4',
+            onEachFeature: pop_Intravilan_existent_4,
+            style: style_Intravilan_existent_4_0,
+        });
+        bounds_group.addLayer(layer_Intravilan_existent_4);
+        map.addLayer(layer_Intravilan_existent_4);
+        function pop_parcele_Frumoasa_5(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (var i in e.target._eventParents) {
+                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
+                            e.target._eventParents[i].resetStyle(e.target);
+                        }
+                    }
+                },
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['fid'] !== null ? autolinker.link(String(feature.properties['fid']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Layer'] !== null ? autolinker.link(String(feature.properties['Layer']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['PaperSpace'] !== null ? autolinker.link(String(feature.properties['PaperSpace']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['SubClasses'] !== null ? autolinker.link(String(feature.properties['SubClasses']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Linetype'] !== null ? autolinker.link(String(feature.properties['Linetype']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['EntityHandle'] !== null ? autolinker.link(String(feature.properties['EntityHandle']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Text'] !== null ? autolinker.link(String(feature.properties['Text']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_parcele_Frumoasa_5_0() {
+            return {
+                pane: 'pane_parcele_Frumoasa_5',
+                opacity: 1,
+                color: 'rgba(72,72,72,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 0.25,
+                fillOpacity: 0,
+                interactive: false,
+				pmIgnore: true,
+            }
+        }
+        map.createPane('pane_parcele_Frumoasa_5');
+        map.getPane('pane_parcele_Frumoasa_5').style.zIndex = 405;
+        map.getPane('pane_parcele_Frumoasa_5').style['mix-blend-mode'] = 'normal';
+        var layer_parcele_Frumoasa_5 = new L.geoJson(json_parcele_Frumoasa_5, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_parcele_Frumoasa_5',
+            layerName: 'layer_parcele_Frumoasa_5',
+            pane: 'pane_parcele_Frumoasa_5',
+            onEachFeature: pop_parcele_Frumoasa_5,
+            style: style_parcele_Frumoasa_5_0,
+        });
+        bounds_group.addLayer(layer_parcele_Frumoasa_5);
+        map.addLayer(layer_parcele_Frumoasa_5);
+        setBounds();		
+		
+		
+		
+		
+		
+		
+		function updateOpacity(value) {
+		    currentOpacity = value;  // Update the current opacity
+            layer_ZFExistenta_1.setStyle(function(feature){
+                return {
+				    pane: 'pane_ZFExistenta_1',
+					color: getBorderColorByType(feature.properties['Tip_SZF']),
+					weight: 0, //Border width
+					opacity: currentOpacity,
+					dashArray: '',
+					lineCap: 'butt',
+					lineJoin: 'miter',
+					fill: true,
+					fillOpacity: currentOpacity,
+					fillColor: getColorByType(feature.properties['Tip_SZF']),
+					interactive: true
+				};
+			});
+			//If a feature is currently highlighted, update its style as well
+			if (highlightLayer) {
+			    highlightLayer.setStyle({
+				    fillOpacity: currentOpacity,
+					color: getBorderColorByType(highlightLayer.feature.properties['Tip_SZF']),
+					weight: 0,
+					opacity: currentOpacity
+				});
+			}
+		}
+
+
+
+		const typeColorMap = new Map([
+			['Zonă pentru locuințe cu regim de înălțime P - P+1', 'rgba(243,194,93,1.0)'],
+			['Terenuri agricole în intravilan', 'rgba(247,228,102,1.0)'],
+			['Zonă unități industriale/depozitare', 'rgba(229,158,128,1.0)'],
+			['Zonă comercială', 'rgba(220,82,90,1.0)'],
+			['Zonă culte', 'rgba(220,82,90,1.0)'],
+			['Zonă financiar-bancară', 'rgba(220,82,90,1.0)'],
+			['Zonă învățământ și educație', 'rgba(220,82,90,1.0)'],
+			['Zonă sănătate și asistență socială', 'rgba(220,82,90,1.0)'],
+			['Zonă cultură', 'rgba(220,82,90,1.0)'],
+			['Zonă instituții administrative și servicii', 'rgba(220,82,90,1.0)'],
+			['Zonă instituții administrative și servicii, sănătate și asistență socială', 'rgba(220,82,90,1.0)'],
+			['Zonă mixtă - zonă comercială, sănătate și asistență socială', 'rgba(220,82,90,1.0)'],
+			['Zonă ferme zootehnice', 'rgba(41,120,88,1.0)'],
+			['Zonă construcții aferente lucrărilor tehnico-edilitare', 'rgba(186,139,66,1.0)'],
+			['Zonă cu destinație specială', 'rgba(233,179,203,1.0)'],
+			['Zonă locuințe sezoniere, case de vacanță', 'rgba(243,143,91,1.0)'],
+			['Zonă pentru locuințe cu condiția existenței documentațiilor P.U.Z. sau P.U.D.', 'url(#orangeYellowStripes)'],
+			['Zonă mixtă - teren agricol în intravilan, spații plantate, agrement, sport', 'url(#greenYellowStripes)'],
+			['Zonă mixtă - instituții publice și servicii, spații plantate, agrement, sport', 'url(#greenRedStripes)'],
+			['Zonă mixtă - spații plantate, agrement, sport, locuințe de vacanțe', 'url(#orangeGreenStripes)'],
+			['Zonă perdele de protecție', 'rgba(183,204,119,1.0)'],
+			['Zonă plantații naturale,rezervații', 'rgba(183,204,119,1.0)'],
+			['Zonă agrement', 'rgba(183,204,119,1.0)'],
+			['Zonă complex sportiv', 'rgba(183,204,119,1.0)'],
+			['Parc public', 'rgba(183,204,119,1.0)'],
+			['Gospodărie comunală', 'rgba(236,207,139,1.0)'],
+			['Zonă cimitire', 'rgba(236,207,139,1.0)'],
+			['Zonă căi de comunicație rutieră și amenajări aferente', 'rgba(194,117,159,1.0)']
+		]);
+
+		function getColorByType(type) {
+			const normalized = String(type)
+				.normalize("NFC")
+				.replace(/\s+/g, ' ') // replace multiple spaces/newlines/tabs with single space
+				.trim();
+
+			if (typeColorMap.has(normalized)) {
+				return typeColorMap.get(normalized);
+			}
+
+			console.warn('Unknown type for color:', JSON.stringify(normalized));
+			return 'rgba(16,74,233,1.0)';
+		}
+
+
+
+
+		function getBorderColorByType(type) {
+		    switch(String(type)) {
+			    default:
+				    return 'rgba(0,0,0,' + currentOpacity + ')';
+			}
+		}
+
+		// Style function for the layer
+		function style_ZFExistenta_1_0(feature) {
+			const fill = getColorByType(feature.properties['Tip_SZF']);
+			return {
+				pane: 'pane_ZFExistenta_1',
+				color: getBorderColorByType(feature.properties['Tip_SZF']),
+				weight: 0,
+				opacity: currentOpacity,
+				dashArray: '',
+				lineCap: 'butt',
+				lineJoin: 'miter',
+				fill: true,
+				fillOpacity: currentOpacity,
+				fillColor: fill, // SVG url() or plain rgba()
+				interactive: true,
+				pmIgnore: false
+			};
+		}
+		// Add the Regulament Local de Urbanism layer
+        var layer_ZFExistenta_1 = new L.geoJson(json_ZFExistenta_1, {
+            attribution: '',
+            interactive: true,
+			pmIgnore: true,
+            dataVar: 'json_ZFExistenta_1',
+            layerName: 'layer_ZFExistenta_1',
+            pane: 'pane_ZFExistenta_1',
+            onEachFeature: pop_ZFExistenta_1,
+            style: style_ZFExistenta_1_0,
+        });
+        map.addLayer(layer_ZFExistenta_1);
+
+        // Wait for the DOM to load before adding the slider
+        document.addEventListener('DOMContentLoaded', function() {
+            // Find the container for the overlays
+            var overlaysContainer = document.querySelector('.leaflet-control-layers-overlays');
+            
+            if (overlaysContainer) {
+                // Create the slider container
+                var sliderContainer = document.createElement('div');
+                sliderContainer.style.marginTop = '10px';
+				sliderContainer.style.alignItems = 'center';
+
+                // Create the label
+                var sliderLabel = document.createElement('label');
+                sliderLabel.htmlFor = 'opacitySlider';
+                sliderLabel.innerText = 'Átlátszóság';
+				sliderLabel.setAttribute('data-label-ro', 'Transparență');
+				sliderLabel.setAttribute('data-label-hu', 'Átlátszóság');
+				sliderLabel.style.fontWeight = 'bold';
+
+                // Create the slider input
+                var sliderInput = document.createElement('input');
+                sliderInput.type = 'range';
+                sliderInput.id = 'opacitySlider';
+                sliderInput.min = '0';
+                sliderInput.max = '1';
+                sliderInput.step = '0.1';
+                sliderInput.value = '1';
+                sliderInput.onchange = function() {
+                    updateOpacity(this.value);
+                };
+
+                // Append the label and slider to the slider container
+                sliderContainer.appendChild(sliderLabel);
+                sliderContainer.appendChild(sliderInput);
+
+                // Append the slider container to the overlays container
+                overlaysContainer.appendChild(sliderContainer);
+            }
+        });
+        
+        var baseMaps = [
+		    {label: "OpenStreetMap", layer: layer_OpenStreetMap_1},
+            {label: "Google Satellite Hybrid", layer: layer_GoogleSatelliteHybrid_0},]
+        var overlaysTree = [{
+				label: '<img src="legend/LimitadministrativComunaFrumoasa_0.png" /> <strong data-label-ro="Limită Administrativă" data-label-hu="Közigazgatási határ">Közigazgatási határ</strong>',
+				layer: layer_LimitadministrativComunaFrumoasa_0
+			},
+			{
+				label: '<img src="legend/Intravilan_existent_4.png" /> <strong data-label-ro="Limită Intravilan" data-label-hu="Belterület határ">Belterület határ</strong>',
+				layer: layer_Intravilan_existent_4
+			},
+			{
+				label: '<strong data-label-ro="Regulament Local de Urbanism" data-label-hu="Helyi Építésügyi Szabályzat">Helyi Építésügyi Szabályzat</strong><br /><table>\
+					<tr><td style="text-align: center;"><img src="legend/ZFExistenta_1_ZonăpentrulocuințecuregimdeînălțimePP10.png" /></td><td data-label-ro="Zonă locuințe și funcțiuni complementare" data-label-hu="Lakóövezet és kiegészítő funkciók">Lakóövezet és kiegészítő funkciók</td></tr>\
+					<tr><td style="text-align: center;"><img src="legend/ZFExistenta_1_Terenuriagricoleînintravilan1.png" /></td><td data-label-ro="Teren agricol în intravilan" data-label-hu="Mezőgazdasági terület belterületen">Mezőgazdasági terület belterületen</td></tr>\
+					<tr><td style="text-align: center;"><img src="legend/ZFExistenta_1_Zonăcomercială3.png" /></td><td data-label-ro="Zonă pentru instituții și servicii" data-label-hu="Intézmények és szolgáltatások zónája">Intézmények és szolgáltatások zónája</td></tr>\
+					<tr><td style="text-align: center;"><img src="legend/ZFExistenta_1_Zonăunitățiindustrialedepozitare2.png" /></td><td data-label-ro="Zonă pentru unități industriale și depozitare" data-label-hu="Ipari és raktározási egységek">Ipari és raktározási egységek</td></tr>\
+					<tr><td style="text-align: center;"><img src="legend/ZFExistenta_1_Zonăconstrucțiiaferentelucrărilortehnicoedilitare12.png" /></td><td data-label-ro="Echipare tehnico-edilitară" data-label-hu="Műszaki infrastrukturális berendezés">Műszaki infrastrukturális berendezés</td></tr>\
+					<tr><td style="text-align: center;"><img src="legend/ZFExistenta_1_Gospodăriecomunală20.png" /></td><td data-label-ro="Zonă gospodării comunale" data-label-hu="Közműgazdálkodási zóna">Közműgazdálkodási zóna</td></tr>\
+					<tr><td style="text-align: center;"><img src="legend/ZFExistenta_1_Parcpublic26.png" /></td><td data-label-ro="Zonă spații verzi, sport și agrement" data-label-hu="Zöldterületek, sport és szabadidő">Zöldterületek, sport és szabadidő</td></tr>\
+					<tr><td style="text-align: center;"><img src="legend/ZFExistenta_1_Zonăfermezootehnice11.png" /></td><td data-label-ro="Zonă pentru unități agricole" data-label-hu="Mezőgazdasági és állattartó egységek">Mezőgazdasági és állattartó egységek</td></tr>\
+					<tr><td style="text-align: center;"><img src="legend/ZFExistenta_1_Zonăcudestinațiespecială13.png" /></td><td data-label-ro="Zonă cu destinație specială" data-label-hu="Speciális profilú tevékenységek zónája">Speciális profilú tevékenységek zónája</td></tr>\
+					<tr><td style="text-align: center;"><img src="legend/ZFExistenta_1_Zonăcăidecomunicațierutierășiamenajăriaferente27.png" /></td><td data-label-ro="Zonă pentru căi de comunicație" data-label-hu="Közúti közlekedés zónája">Közúti közlekedés zónája</td></tr>\
+					<tr><td style="text-align: center;"><img src="legend/ZFExistenta_1_ZonăpentrulocuințecucondițiaexistențeidocumentațiilorPUZsauPUD16.png" /></td><td data-label-ro="Zonă pentru locuințe cu condiția existenței documentațiilor P.U.Z. sau P.U.D." data-label-hu="Lakóövezet - PUZ/PUD köteles">Lakóövezet - PUZ/PUD köteles</td></tr>\
+					<tr><td style="text-align: center;"><img src="legend/ZFExistenta_1_Zonămixtăterenagricolînintravilanspațiiplantateagrementsport17.png" /></td><td data-label-ro="Zonă mixtă - teren agricol în intravilan, spații plantate, agrement, sport" data-label-hu="Vegyes zóna – belterületi mezőgazdasági terület, zöldfelület, szabadidő">Vegyes zóna – belterületi mezőgazdasági terület, zöldfelület, szabadidő</td></tr>\
+					<tr><td style="text-align: center;"><img src="legend/ZFExistenta_1_Zonămixtăinstituțiipubliceșiserviciispațiiplantateagrementsport18.png" /></td><td data-label-ro="Zonă mixtă - instituții publice și servicii, spații plantate, agrement, sport" data-label-hu="Vegyes zóna – közintézmények, zöldfelület, szabadidő">Vegyes zóna – közintézmények, zöldfelület, szabadidő</td></tr>\
+					<tr><td style="text-align: center;"><img src="legend/ZFExistenta_1_Zonămixtăspațiiplantateagrementsportlocuințedevacanțe19.png" /></td><td data-label-ro="Zonă mixtă - spații plantate, agrement, sport, locuințe de vacanțe" data-label-hu="Vegyes zóna – zöldterület, szabadidő, üdülőlakások">Vegyes zóna – zöldterület, szabadidő, üdülőlakások</td></tr>\
+				</table>',
+				layer: layer_ZFExistenta_1
+			},
+			{
+				label: '<strong data-label-ro="Zone delimitate" data-label-hu="Lehatárolt zónák">Lehatárolt zónák</strong><br /><table>\
+					<tr><td style="text-align: center;"><img src="legend/Zone_prot_ex_2_Zonăcentrală0.png" /></td><td data-label-ro="Zonă centrală" data-label-hu="Központi zóna">Központi zóna</td></tr>\
+					<tr><td style="text-align: center;"><img src="legend/Zone_prot_ex_2_Zonădeprotecțiefațădeobiectivecuvaloaredepatrimoniu1.png" /></td><td data-label-ro="Zonă de protecție față de obiective cu valoare de patrimoniu" data-label-hu="Műemlékvédelmi övezet">Műemlékvédelmi övezet</td></tr>\
+					<tr><td style="text-align: center;"><img src="legend/Zone_prot_ex_2_Zonădeprotecțiesanitară2.png" /></td><td data-label-ro="Zonă de protecție sanitară" data-label-hu="Egészségügyi védőövezet">Egészségügyi védőövezet</td></tr>\
+				</table>',
+				layer: layer_Zone_prot_ex_2
+			},
+		]
+        var lay = L.control.layers.tree(baseMaps, overlaysTree,{
+            //namedToggle: true,
+            //selectorBack: false,
+            //closedSymbol: '&#8862; &#x1f5c0;',
+            //openedSymbol: '&#8863; &#x1f5c1;',
+            //collapseAll: 'Collapse all',
+            //expandAll: 'Expand all',
+            collapsed: true,
+			position: 'topright'
+        });
+        lay.addTo(map);
+		
+		lay.getContainer().classList.add('widget');
+		lay.getContainer().id = 'layers-widget';
+		
+		function updateLegendLanguage(lang) {
+			const legendItems = document.querySelectorAll('.leaflet-control-layers-overlays label, .leaflet-control-layers-overlays td, .leaflet-control-layers-overlays strong');
+
+			legendItems.forEach(item => {
+				const labelRo = item.getAttribute('data-label-ro');
+				const labelHu = item.getAttribute('data-label-hu');
+        
+				// Update the label according to the selected language
+				if (lang === 'ro' && labelRo) {
+					item.innerHTML = labelRo;
+				} else if (lang === 'hu' && labelHu) {
+					item.innerHTML = labelHu;
+				}
+			});
+			
+			// Update the opacity slider label
+			const sliderLabel = document.querySelector('label[for="opacitySlider"]');
+			if (sliderLabel) {
+				if (lang === 'ro') {
+					sliderLabel.innerText = sliderLabel.getAttribute('data-label-ro');
+				} else if (lang === 'hu') {
+					sliderLabel.innerText = sliderLabel.getAttribute('data-label-hu');
+				}
+			}	
+		}
+		
+		function updateButtonText(lang) {
+			var button = document.getElementById('show-demo-btn');
+			if (lang === 'ro') {
+				button.textContent = 'Vizualizare ghid de utilizare';  // Romanian translation
+			} else {
+				button.textContent = 'Útmutató megtekintése'; // Hungarian translation
+			}
+		}
+		
+        setBounds();
+		L.control.scale( { imperial: false, metric: true  } ).addTo(map);
+		
+		var locateControl = L.control.locate({
+		    position: 'topright',
+			strings: {
+                title: "Élő helyzet"
+            }
+		}).addTo(map);
+		
+		locateControl.getContainer().classList.add('widget');
+		locateControl.getContainer().id = 'locate-widget';
+		
+		demoStarted = 0;
+		document.getElementById('show-demo-btn').addEventListener('click', function() {
+    		startDemo();
+			demoStarted = 1;
+		});
+
+		var demoSteps = [
+			{ 
+				text: '<div style="text-align: center; margin-top: 5px; margin-bottom: 5px;"><strong>Nagyítás/Kicsinyítés</strong></div>A  <img src="images/demo/plus.png" alt="plus" style="vertical-align: middle; width: 35px; height: 35px; box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2); border-radius: 2px; margin: 0 3px;" /> , illetve  <img src="images/demo/minus2.png" alt="minus2" style="vertical-align: middle; width: 35px; height: 35px; box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2); border-radius: 2px; margin: 0 3px;" /> gombokra kattintva, vagy az egér görgőjének segítségével belenagyíthat a térképbe, vagy pedig kicsinyítheti azt.<br><br><img src="images/demo/zoom.gif" alt="Text GIF" style="display: block; margin: 0 auto; width: 400px; height: 400px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);"><br>',
+				widgetId: "zoom-widget" 
+			},
+			{ 
+				text: '<div style="text-align: center; margin-top: 5px; margin-bottom: 5px;"><strong>Teljes képernyő</strong></div>A <img src="images/demo/fullscreen.png" alt="fulscreen" style="vertical-align: middle; width: 35px; height: 35px; box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2); border-radius: 2px; margin: 0 3px;" /> gomb megnyomásával a térképet "teljes képernyő mód"-ba helyezhetjük. A gomb ismételt megnyomására a térkép visszatér eredeti méreteihez.', 
+				widgetId: "fullscreen-widget" 
+			},
+			{
+				text: `
+					<div style="text-align: center;">
+						<strong>Rajzoló eszköztár</strong>
+					</div>
+					<div style="display: flex; align-items: flex-start;">
+						<div style="margin-left: 20px;">
+							<img src="images/demo/drawing.png" alt="drawing" style="margin-right: 10px; width: 35px; height: 165px; box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2); border-radius: 2px; margin: 0 3px; margin-top: 10px;" />
+						</div>
+						<div style="display: flex; flex-direction: column; justify-content: space-between; height: 160px; margin-left: 5px; margin-top: 13px;">
+							<div>Jelölő elhelyezése.</div>
+							<div>Vonal rajzolása.</div>
+							<div>Felület rajzolása.</div>
+							<div>Kör rajzolása.</div>
+							<div>Szöveg beszúrása.</div>
+						</div>
+					</div>`,
+				widgetId: "drawing-widget"
+			},
+			{ 
+				text: '<div style="text-align: center; margin-top: 5px; margin-bottom: 5px; "><strong>Jelölő elhelyezése</strong></div>A <img src="images/demo/marker.png" alt="marker" style="vertical-align: middle; width: 35px; height: 35px; box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2); border-radius: 2px; margin: 0 3px;" /> gomb megnyomásával egy jelölőt helyezhetünk el a térképen.<br><br><img src="images/demo/marker.gif" alt="Text GIF" style="display: block; margin: 0 auto; width: 400px; height: 400px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);"><br>', 
+				widgetId: "drawing-widget" 
+			},
+			{ 
+				text: '<div style="text-align: center; margin-top: 5px; margin-bottom: 5px;"><strong>Vonal rajzolása</strong></div>A <img src="images/demo/line.png" alt="line" style="vertical-align: middle; width: 35px; height: 35px; box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2); border-radius: 2px; margin: 0 3px;" /> gomb megnyomásával egy vonalat rajzolhatunk a térképre.<br>A vonalat szakaszonként rajzoljuk, vertexeket (csomópontokat) helyezve el.<br>Ha egy vertexet rossz helyre helyeztünk, azt törölhetjük a menüből az "Utolsó pont eltávolitása" gombra kattintva.<br>Ha a hibát későn észleljük, lehetőségünk lesz a rajz befejezése után, a szerkesztő eszköztárban található eszközök segítségével kijavítani.<br>A vertexeket helyzhetjük a térkép felületén bárhova. Ha azt pontosan egy létező határvonalra, vagy egy megrajzolt elemre/annak határára szeretnénk helyezni, az egeret közelítve a vertex automatikusan ráugrik. Ezzel a módszerrel a határvonalakat pontosan követni tudjuk.<br>A vonal befejezése történhet bármelyik létező vertexre, vagy a menüből a "Befejezés" gombra kattintva.<br>A rajzolást bármikor abbahagyhatjuk a "Mégse" gombra kattintva. Ebben az esetben az összes vertex törlődik.<br><br><img src="images/demo/line.gif" alt="Text GIF" style="display: block; margin: 0 auto; width: 400px; height: 400px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);"><br>',
+				widgetId: "drawing-widget" 
+			},
+			{ 
+				text: '<div style="text-align: center; margin-top: 5px; margin-bottom: 5px;"><strong>Felület rajzolása</strong></div>A <img src="images/demo/polygon.png" alt="polygon" style="vertical-align: middle; width: 35px; height: 35px; box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2); border-radius: 2px; margin: 0 3px;" /> gomb megnyomásával egy sokszöget rajzolhatunk.<br>A vonalat szakaszonként rajzoljuk, vertexeket (csomópontokat) helyezve el.<br>Ha egy vertexet rossz helyre helyeztünk, azt törölhetjük a menüből az "Utolsó pont eltávolitása" gombra kattintva.<br>Ha a hibát későn észleljük, lehetőségünk lesz a rajz befejezése után, a szerkesztő eszköztárban található eszközök segítségével kijavítani.<br>A vertexeket helyzhetjük a térkép felületén bárhova. Ha azt pontosan egy létező határvonalra, vagy egy megrajzolt elemre/annak határára szeretnénk helyezni, az egeret közelítve a vertex automatikusan ráugrik. Ezzel a módszerrel a határvonalakat pontosan követni tudjuk.<br>A sokszög befejezése történhet az elsőként elhelyezett vertexre, vagy a menüből a "Befejezés" gombra kattintva.<br>A rajzolást bármikor abbahagyhatjuk a "Mégse" gombra kattintva. Ebben az esetben az összes vertex törlődik.<br><br><img src="images/demo/polygon.gif" alt="Text GIF" style="display: block; margin: 0 auto; width: 400px; height: 400px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);"><br>',
+				widgetId: "drawing-widget" 
+			},
+			{ 
+				text: '<div style="text-align: center; margin-top: 5px; margin-bottom: 5px;"><strong>Kör rajzolása</strong></div>A <img src="images/demo/circle.png" alt="circle" style="vertical-align: middle; width: 35px; height: 35px; box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2); border-radius: 2px; margin: 0 3px;" /> gomb megnyomásával kört rajzolhatunk.<br>Elsőként a kör középpontját helyezzük el, majd a következő kattintással határozzuk meg a sugarát. Az egér mozgatásával láthatjuk ahogyan a kör kiterjedése változik.<br>A kör középpontját, illetve a sugarát meghatározó pontot egyaránt csatolhatjuk egy létező, vagy általunk megrajzolt elemre.<br><br><img src="images/demo/circle.gif" alt="Text GIF" style="display: block; margin: 0 auto; width: 400px; height: 400px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);"><br>', 
+				widgetId: "drawing-widget" 
+			},
+			{ 
+				text: '<div style="text-align: center; margin-top: 5px; margin-bottom: 5px;"><strong>Szöveg írása</strong></div>A <img src="images/demo/text.png" alt="text" style="vertical-align: middle; width: 35px; height: 35px; box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2); border-radius: 2px; margin: 0 3px;" /> gomb megnyomásával szöveget szúrhatunk be.<br>A térképre bárhova kattintva egy szövegdobozt helyezünk el, melybe tetszés szerint írhatunk.<br>Az Enter billenytűvel új sort szúrunk be. Az írás befejezéséhez a szövegdobozon kívül, bárhová kattinthatunk<br><br><img src="images/demo/text.gif" alt="Text GIF" style="display: block; margin: 0 auto; width: 400px; height: 400px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);"><br>',
+				widgetId: "drawing-widget" 
+			},
+			{
+				text: `
+					<div style="text-align: center; margin-top: 5px; margin-bottom: 5px;">
+						<strong>Szerkesztő eszköztár</strong>
+					</div>
+					<div style="display: flex; align-items: flex-start;">
+						<div style="margin-left: 20px;">
+							<img src="images/demo/editing.png" alt="drawing" style="margin-right: 10px; width: 35px; height: 130px; box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2); border-radius: 2px; margin: 0 3px; margin-top: 10px;" />
+						</div>
+						<div style="display: flex; flex-direction: column; justify-content: space-between; height: 125px; margin-left: 5px; margin-top: 14px;">
+							<div>Rajzolt elemek szerkesztése.</div>
+							<div>Rajzolt elemek mozgatása.</div>
+							<div>Rajzolt elemek vágása.</div>
+							<div>Rajzolt elemek törlése.</div>
+						</div>
+					</div>`,
+				widgetId: "editing-widget"
+			},
+			{ 
+				text: '<div style="text-align: center; margin-top: 5px; margin-bottom: 5px;"><strong>Módosítás</strong></div>A <img src="images/demo/select.png" alt="select" style="vertical-align: middle; width: 35px; height: 35px; box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2); border-radius: 2px; margin: 0 3px;" /> gomb megnyomásával a már megrajzolt elemek vertexeit módosíthatjuk.<br>Minden 2 vertex közötti szakasz közepén egy újabbat van lehetőségünk elhelyezni:<br> - egyszerű kattintásra ez megörzi helyzetét, de fő vertexé válik <br> - ha egyből mozgatjuk, akkor új helyzetet adhatunk neki.<br>A vertexre jobb clicket nyomva azt törölni tudjuk.<br>A "Befejezés" gombra kattintva, vagy bármelyik másik eszköz kiválasztásával a szerkesztést befejezzük.<br><br><img src="images/demo/select.gif" alt="Text GIF" style="display: block; margin: 0 auto; width: 400px; height: 400px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);"><br>', 
+				widgetId: "editing-widget" 
+			},
+			{ 
+				text: '<div style="text-align: center; margin-top: 5px; margin-bottom: 5px;"><strong>Mozgatás</strong></div>A <img src="images/demo/move.png" alt="move" style="vertical-align: middle; width: 35px; height: 35px; box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2); border-radius: 2px; margin: 0 3px;" /> gomb megnyomásával a megrajzolt elemeket mozgathatjuk.<br>Az eszköz kiválasztása után a megrajzolt elemre kattintunk, az egér gombját lenyomva tartjuk, és az egeret mozgatva az elemet új helyre húzzuk.<br><br><img src="images/demo/move.gif" alt="Text GIF" style="display: block; margin: 0 auto; width: 400px; height: 400px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);"><br>', 
+				widgetId: "editing-widget" 
+			},
+			{ 
+				text: '<div style="text-align: center; margin-top: 5px; margin-bottom: 5px;"><strong>Vágás</strong></div>A <img src="images/demo/cut.png" alt="cut" style="vertical-align: middle; width: 35px; height: 35px; box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2); border-radius: 2px; margin: 0 3px;" /> gomb megnyomásával a megrajzolt elemekből levágni tudunk.<br>Vágni az elem széléről és belsejéből egyaránt tudunk.<br><br><img src="images/demo/cut.gif" alt="Text GIF" style="display: block; margin: 0 auto; width: 400px; height: 400px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);"><br>', 
+				widgetId: "editing-widget" 
+			},
+			{ 
+				text: '<div style="text-align: center; margin-top: 5px; margin-bottom: 5px;"><strong>Törlés</strong></div>A <img src="images/demo/erase.png" alt="erase" style="vertical-align: middle; width: 35px; height: 35px; box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2); border-radius: 2px; margin: 0 3px;" /> gomb megnyomásával törölhetjük a megrajzolt elemeket.<br>Az adott elemre kattintva, legyen az jelölő, vonal, felület, kör, vagy szöveg, egy kattintással törölhetjük.<br>Vertex törléséhez a "Módosítás" eszközt kell használnunk.<br><br><img src="images/demo/erase.gif" alt="Text GIF" style="display: block; margin: 0 auto; width: 400px; height: 400px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);"><br>', 
+				widgetId: "editing-widget" 
+			},
+			{ 
+				text: '<div style="text-align: center; margin-top: 5px; margin-bottom: 5px;"><strong>Nyomtatás</strong></div>A <img src="images/demo/print.png" alt="print" style="vertical-align: middle; width: 35px; height: 35px; box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2); border-radius: 2px; margin: 0 3px;" /> gomb megnyomásával a térképet nyomtathatjuk a megrajzolt elemekkel együtt.<br>A választható nyomtatási lehetőségek az Álló, Fekvő, Automatikus és a Kijelölés.<br><br><img src="images/demo/zoom.gif" alt="Text GIF" style="display: block; margin: 0 auto; width: 400px; height: 400px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);"><br>',  
+				widgetId: "print-widget" 
+			},
+			{ 
+				text: '<div style="text-align: center; margin-top: 5px; margin-bottom: 5px;"><strong>Nyelv választása</strong></div>A <img src="images/demo/language.png" alt="language" style="vertical-align: middle; width: 123px; height: 45px; box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2); border-radius: 2px; margin: 0 3px;" /> gombok használatával a felület nyelvét választhatjuk ki.<br>Alapértelmezetten a magyar nyelv van kiválasztva. A 2 nyelv között tetszés szerint lehet váltogatni.<br><br><img src="images/demo/language.gif" alt="Text GIF" style="display: block; margin: 0 auto; width: 300px; height: 150px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);"><br>', 
+				widgetId: "language-widget" 
+			},
+			{ 
+				text: '<div style="text-align: center; margin-top: 5px; margin-bottom: 5px;"><strong>Jelmagyarázat</strong></div>A <img src="images/demo/layers.png" alt="layers" style="vertical-align: middle; width: 50px; height: 50px; box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2); border-radius: 2px; margin: 0 3px;" /> gomb megnyomásával egy ablak nyílik meg, melyben a jelmagyarázatot tekinthetjük meg, alaptérképet választhatunk, és a településhatár, illetve funkcionális zónák átlátszóságát tudjuk állítani.<br><br><img src="images/demo/layers2.png" alt="layers" style="display: block; margin: 0 auto; width: 224px; height: 331px; box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2); border-radius: 2px;" /><br>Alapértelmezetten az OSM alaptérkép látható. Ezt a Google szatelitfelvételre válthatjuk, hogy pontos képet kapjunk a vizsgált terület felszínéről.<br><br><img src="images/demo/basemap.png" alt="layers" style="display: block; margin: 0 auto; width: 143px; height: 47px; box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2); border-radius: 2px;" /><br>Lennebb a jelmagyarázatot találhatjuk, mely a lehatárolt területek szimbológiáját mutatja be. Ezen rétegeket ki-be kapcsolhatjuk a cím előtti pipára kattintva.<br><br><img src="images/demo/legend.png" alt="layers" style="display: block; margin: 0 auto; width: 218px; height: 230px; box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2); border-radius: 2px;" /><br>A csúszka csúsztatásával a jelmagyarázatban résztvevő rétegek átlátszóságát állíthatjuk.<br><br><img src="images/demo/transparency.png" alt="layers" style="display: block; margin: 0 auto; width: 125px; height: 43px; box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2); border-radius: 2px;" />',
+				widgetId: "layers-widget" 
+			},
+			{ 
+				text: '<div style="text-align: center; margin-top: 5px; margin-bottom: 5px;"><strong>Élő helyzetmeghatározás</strong></div>A <img src="images/demo/locate.png" alt="locate" style="vertical-align: middle; width: 35px; height: 35px; box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2); border-radius: 2px; margin: 0 3px;" /> gomb megnyomásával saját helyzetünket tekinthetjük meg a térképen annak érdekében, hogy egyszerűbben azonosíthatjuk a vizsgálni kívánt területet.<br>Az eszköz csak akkor működik, ha jelenlegi helyzetünk a térkép keretein belül van.', 
+				widgetId: "locate-widget" 
+			},
+			{ 
+				text: '<div style="text-align: center; margin-top: 5px; margin-bottom: 5px;"><strong>Útmutató</strong></div>Ha bármikor megszeretné újra tekinteni az útmutatót, kattintson az <img src="images/demo/demo.png" alt="demo" style="vertical-align: middle; width: 35px; height: 35px; box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2); border-radius: 2px; margin: 0 3px;" /> ikonra.', 
+				widgetId: "demo-widget" 
+			}
+		];
+
+		var currentStep = 0;
+
+		function startDemo() {
+		    document.getElementById('demo-nav').style.display = 'flex';
+    		showStep(currentStep);
+		}
+		
+		function endDemo() {
+    		removeTextbox();
+
+    		// Hide navigation buttons
+    		var demoNav = document.getElementById('demo-nav');
+    		if (demoNav) {
+        		demoNav.style.display = 'none';
+    		}
+
+    		currentStep = 0; // Reset the step for the next time the demo is started
+			demoStarted = 0;
+		}
+
+		function showStep(stepIndex) {
+		    removeTextbox();
+			
+    		if (stepIndex >= demoSteps.length) {
+        		endDemo();
+        		return;
+    		}
+
+    		var step = demoSteps[stepIndex];
+    		var textbox = createTextbox(step.text,);
+			
+			L.DomEvent.disableScrollPropagation(textbox);
+            L.DomEvent.disableClickPropagation(textbox);
+
+            // Prevent map movement with arrow keys
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'ArrowRight' || event.key === 'ArrowLeft' || event.key === 'Escape') {
+                    event.preventDefault();  // Prevent map movement
+                }
+            });
+
+    		// Darken the map
+			map.getContainer().classList.add('darkened');
+			
+			// Darken all widgets
+    		document.querySelectorAll('.widget').forEach(function(widget) {
+        		widget.classList.add('widget-darkened');
+    		});
+			
+			var widgetToHighlight = document.querySelector(`#${step.widgetId}`);
+			
+    		if (widgetToHighlight) {
+			// Remove highlight from the previously highlighted widget
+                var previouslyHighlighted = document.querySelector('.widget-highlight');
+                if (previouslyHighlighted) {
+                    previouslyHighlighted.classList.remove('widget-highlight');
+                    previouslyHighlighted.classList.add('widget-darkened');
+                }
+				
+        		widgetToHighlight.classList.add('widget-highlight');
+        		widgetToHighlight.classList.remove('widget-darkened');
+			}
+			
+			// Special handling for specific toolbars
+    		if (step.widgetId === "drawing-widget" || step.widgetId === "editing-widget") {
+        		var toolbar = document.querySelector(`#${step.widgetId} .leaflet-pm-toolbar`);
+        		if (toolbar) {
+            		toolbar.classList.remove('widget-darkened');
+            		toolbar.classList.add('widget-highlight');
+        		}
+    		}
+
+    		map.getContainer().appendChild(textbox);
+			
+			// Update navigation button states
+    		var prevBtn = document.getElementById('prev-btn');
+    		var nextBtn = document.getElementById('next-btn');
+
+    		if (stepIndex === 0) {
+        		prevBtn.classList.add('nav-btn-disabled');
+    		} else {
+        		prevBtn.classList.remove('nav-btn-disabled');
+    		}
+
+    		if (stepIndex === demoSteps.length - 1) {
+        		nextBtn.classList.add('nav-btn-disabled');
+    		} else {
+        		nextBtn.classList.remove('nav-btn-disabled');
+    		}
+		}
+
+		function createTextbox(text) {
+    		var textbox = document.createElement('div');
+    		textbox.className = 'demo-textbox';
+    		textbox.innerHTML = text;
+			
+			// Add the textbox to the DOM temporarily to measure its size
+    		document.body.appendChild(textbox);
+			
+			textbox.offsetHeight;
+			
+			var mapHeight = window.innerHeight;
+    		var maxHeight = mapHeight * 0.7;
+			
+			// Check if the textbox height exceeds the maximum height
+    		if (textbox.offsetHeight > maxHeight) {
+        		textbox.style.height = maxHeight + 'px';
+        		textbox.style.overflowY = 'auto'; // Make content scrollable if it exceeds maxHeight
+    		}
+			
+    		return textbox;
+		}
+
+		function removeTextbox() {
+    		var textbox = document.querySelector('.demo-textbox');
+    		if (textbox) {
+        		textbox.remove();
+    		}
+			
+			// Remove dark overlay
+    		map.getContainer().classList.remove('darkened');
+			
+			// Remove darkening from all widgets
+    		document.querySelectorAll('.widget').forEach(function(widget) {
+        		widget.classList.remove('widget-darkened');
+    		});
+
+    		// Remove any existing highlight
+    		var highlightedWidget = document.querySelector('.widget-highlight');
+    		if (highlightedWidget) {
+        		highlightedWidget.classList.remove('widget-highlight');
+    		}
+		}
+		
+		// Add event listeners for the navigation buttons
+		document.getElementById('next-btn').addEventListener('click', function() {
+    		if (currentStep < demoSteps.length - 1) {
+        		currentStep++;
+        		showStep(currentStep);
+    		}
+		});
+
+		document.getElementById('prev-btn').addEventListener('click', function() {
+    		if (currentStep > 0) {
+        		currentStep--;
+        		showStep(currentStep);
+    		}
+		});
+
+		document.getElementById('end-btn').addEventListener('click', function() {
+    		endDemo();
+		});
+		
+		document.addEventListener('keydown', function(event) {
+            if (demoStarted === 1) {
+				if (event.key === 'ArrowRight') {
+					// Right arrow key to go to the next step
+					if (currentStep < demoSteps.length - 1) {
+						currentStep++;
+						showStep(currentStep);
+					}
+				} else if (event.key === 'ArrowLeft') {
+					// Left arrow key to go to the previous step
+					if (currentStep > 0) {
+						currentStep--;
+						showStep(currentStep);
+					}
+				} else if (event.key === 'Escape') {
+					// Escape key to exit the demo
+					endDemo();
+				}
+			}
+        });
+        </script>
+    </body>
+</html>
