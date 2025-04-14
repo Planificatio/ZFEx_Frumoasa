@@ -336,7 +336,7 @@
         var map = L.map('map', {
             zoomControl:false, 
 			maxZoom:23, 
-			minZoom:11,
+			minZoom:13,
 			keyboard: false
         }).setView([46.4460957,25.9016276], 13);
 		
@@ -397,7 +397,6 @@
 		
 		
 
-        var hash = new L.Hash(map);
         map.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank">Leaflet</a>');
         var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
 		
@@ -887,6 +886,13 @@
 	   
 	    printControl.getContainer().classList.add('widget');
 		printControl.getContainer().id = 'print-widget';
+		
+		function setBounds() {
+            map.setMaxBounds([
+				[46.3, 25.5],  // southwest
+				[46.6, 26.3]   // northeast
+			]);
+        }
 		
 		function leafletPipInside(polygonLayer, latlng) {
 			const point = [latlng.lat, latlng.lng];
