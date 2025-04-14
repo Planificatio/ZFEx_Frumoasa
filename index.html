@@ -148,7 +148,7 @@
     		border: 0px solid #ccc;
     		border-radius: 2px;
     		z-index: 1001;
-			width: 90%;
+			width: 75%;
     		max-width: 600px;
 			max-height: 70%;
 			left: 50%;
@@ -1376,7 +1376,7 @@
 
 			if (combinedPopup) {
 				L.popup({
-					maxWidth: window.innerWidth > 600 ? 600 : window.innerWidth * 0.9
+					maxWidth: window.innerWidth > 600 ? 600 : window.innerWidth * 0.75
 				})
 				.setLatLng(latlng)
 				.setContent(combinedPopup)
