@@ -888,10 +888,6 @@
 	    printControl.getContainer().classList.add('widget');
 		printControl.getContainer().id = 'print-widget';
 		
-		function setBounds() {
-            map.setMaxBounds(map.getBounds());
-        }
-		
 		function leafletPipInside(polygonLayer, latlng) {
 			const point = [latlng.lat, latlng.lng];
 			const latlngs = polygonLayer.getLatLngs();
