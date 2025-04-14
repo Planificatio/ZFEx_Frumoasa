@@ -432,6 +432,7 @@
         var title = new L.Control({'position':'topleft'});
         title.onAdd = function (map) {
             this._div = L.DomUtil.create('div', 'info widget');
+	    this._div.style.zIndex = 999;
             this.update('hu');
             return this._div;
         };
